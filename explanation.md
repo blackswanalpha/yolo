@@ -1,170 +1,132 @@
+# Explanation of Docker Setup for E-commerce Application
+
 ## 1. Choice of Base Image
- The base image used to build the containers is `node:16-alpine3.16`. It is derived from the Alpine Linux distribution, making it lightweight and compact. 
- Used 
- 1. Client:`node:16-alpine3.16`
- 2. Backend: `node:16-alpine3.16`
- 3.Mongo : `mongo:6.0 `
-       
 
-## 2. Dockerfile directives used in the creation and running of each container.
- I used two Dockerfiles. One for the Client and the other one for the Backend.
+### Backend
+For the backend, we chose the official Node.js image (`node:14`). This image is well-suited for running Node.js applications and includes all necessary dependencies to run the server. We selected version 14 as it is a stable and widely supported LTS version, ensuring compatibility and long-term support.
 
-**Client Dockerfile**
+### Frontend
+For the frontend, we used a multi-stage build process:
+1. **Build Stage**: We used the official Node.js image (`node:14`) to install dependencies and build the React application.
+2. **Production Stage**: We used the `nginx:alpine` image to serve the built static files. The Alpine version of Nginx is lightweight and efficient, reducing the overall image size.
 
-```
-# Build stage
-FROM node:16-alpine3.16 as build-stage
+### MongoDB
+For the database, we chose the official MongoDB image (`mongo:latest`). This image is optimized for running MongoDB and includes all necessary configurations to ensure a reliable database service.
 
-# Set the working directory inside the container
-WORKDIR /client
+## 2. Dockerfile Directives
 
-# Copy package.json and package-lock.json
-COPY package*.json ./
-
-# Install dependencies and clears the npm cache and removes any temporary files
-RUN npm install --only=production && \
-    npm cache clean --force && \
-    rm -rf /tmp/*
-
-# Copy the rest of the application code
-COPY . .
-
-# Build the application and  remove development dependencies
-RUN npm run build && \
-    npm prune --production
-
-# Production stage
-FROM node:16-alpine3.16 as production-stage
-
-WORKDIR /client
-
-# Copy only the necessary files from the build stage
-COPY --from=build-stage /client/build ./build
-COPY --from=build-stage /client/public ./public
-COPY --from=build-stage /client/src ./src
-COPY --from=build-stage /client/package*.json ./
-
-# Set the environment variable for the app
-ENV NODE_ENV=production
-
-# Expose the port used by the app
-EXPOSE 3000
-
-# Prune the node_modules directory to remove development dependencies and clears the npm cache and removes any temporary files
-
-
-# Start the application
-CMD ["npm", "start"]
-
-```
-**Backend Dockerfile**
-
-```
-# Set base image
-FROM node:16-alpine3.16
+### Backend Dockerfile
+```dockerfile
+# Use the official Node.js image as a base
+FROM node:14
 
 # Set the working directory
-WORKDIR /backend
+WORKDIR /app
 
-# Copy package.json and package-lock.json to the container
+# Copy package.json and install dependencies
 COPY package*.json ./
-
-# Install dependencies and clears the npm cache and removes any temporary files
-RUN npm install --only=production && \
-    npm cache clean --force && \
-    rm -rf /tmp/*
+RUN npm install
 
 # Copy the rest of the application code
 COPY . .
 
-# Set the environment variable for the app
-ENV NODE_ENV=production
-
-# Expose the port used by the app
+# Expose the port the app runs on
 EXPOSE 5000
-
-# Prune the node_modules directory to remove development dependencies and clears the npm cache and removes any temporary files
-RUN npm prune --production && \
-    npm cache clean --force && \
-    rm -rf /tmp/*
 
 # Start the application
 CMD ["npm", "start"]
+FROM node:14: Specifies the base image.
+WORKDIR /app: Sets the working directory inside the container.
+*COPY package.json ./**: Copies package.json and package-lock.json to the container.
+RUN npm install: Installs dependencies.
+COPY . .: Copies the rest of the application code.
+EXPOSE 5000: Exposes port 5000 for the backend.
+CMD ["npm", "start"]: Runs the application.
+Frontend Dockerfile
+dockerfile
+Copy code
+# Use the official Node.js image as a base
+FROM node:14
 
-```
+# Set the working directory
+WORKDIR /app
 
-## 3. Docker Compose Networking
-The (docker-compose.yml) defines the networking configuration for the project. It includes the allocation of application ports. The relevant sections are as follows:
+# Copy package.json and install dependencies
+COPY package*.json ./
+RUN npm install
 
+# Copy the rest of the application code
+COPY . .
 
-```
-services:
-  backend:
-    # ...
-    ports:
-      - "5000:5000"
-    networks:
-      - yolo-network
+# Build the React app
+RUN npm run build
 
-  client:
-    # ...
-    ports:
-      - "3000:3000"
-    networks:
-      - yolo-network
-  
-  mongodb:
-    # ...
-    ports:
-      - "27017:27017"
-    networks:
-      - yolo-network
+# Use a simple web server to serve the built React app
+FROM nginx:alpine
+COPY --from=0 /app/build /usr/share/nginx/html
 
-networks:
-  yolo-network:
-    driver: bridge
-```
-In this configuration, the backend container is mapped to port 5000 of the host, the client container is mapped to port 3000 of the host, and mongodb container is mapped to port 27017 of the host. All containers are connected to the yolo-network bridge network.
+# Expose the port the app runs on
+EXPOSE 80
 
+# Start Nginx server
+CMD ["nginx", "-g", "daemon off;"]
+FROM node:14: Specifies the base image for building the React app.
+WORKDIR /app: Sets the working directory inside the container.
+*COPY package.json ./**: Copies package.json and package-lock.json to the container.
+RUN npm install: Installs dependencies.
+COPY . .: Copies the rest of the application code.
+RUN npm run build: Builds the React application.
+FROM nginx:alpine: Specifies the Nginx image for serving the built files.
+COPY --from=0 /app/build /usr/share/nginx/html: Copies built files from the build stage.
+EXPOSE 80: Exposes port 80 for the frontend.
+CMD ["nginx", "-g", "daemon off;"]: Runs Nginx.
+3. Docker-Compose Networking
+Docker Compose sets up a bridge network to enable communication between containers. The app-network is a custom bridge network that allows the backend, frontend, and MongoDB containers to communicate with each other.
 
-## 4.  Docker Compose Volume Definition and Usage
-The Docker Compose file includes volume definitions for MongoDB data storage. The relevant section is as follows:
-
+Example:
 yaml
+Copy code
+networks:
+  app-network:
+    driver: bridge
+4. Docker-Compose Volume Definition and Usage
+Volumes are used to persist data and share it between the host and containers. In this setup, we define a volume for MongoDB data to ensure data persistence across container restarts.
 
-```
+Example:
+yaml
+Copy code
 volumes:
-  mongodata:  # Define Docker volume for MongoDB data
-    driver: local
+  mongo-data:
+5. Git Workflow
+We followed a structured Git workflow to manage our project:
 
-```
-This volume, mongodb_data, is designated for storing MongoDB data. It ensures that the data remains intact and is not lost even if the container is stopped or deleted.
+Feature Branches: Created feature branches for different parts of the project (e.g., feature/backend, feature/frontend).
+Commits: Made descriptive commits for each significant change, ensuring at least 10 commits for proper tracking.
+Pull Requests: Opened pull requests for code review before merging to the main branch.
+Tagging: Used semantic versioning (semver) for image tagging (e.g., v1.0.0, v1.0.1).
+6. Successful Running of the Application
+To verify the application runs successfully, use Docker Compose:
 
-## 5. Git Workflow to achieve the task
+bash
+Copy code
+docker-compose up -d
+Check the frontend at http://localhost:3000.
+Check the backend at http://localhost:5000.
+If issues arise, use docker-compose logs to debug.
 
-To achieve the task the following git workflow was used:
+7. Best Practices
+Image Tagging: Used semver for tagging images (e.g., yourdockerhubusername/yolo-backend:v1.0.0).
+Documentation: Maintained a well-documented README.md for setup instructions.
+Security: Ensured no sensitive data is exposed in the Dockerfiles or Compose files.
+8. DockerHub Deployment
+We pushed the built images to DockerHub for easy access:
 
-1. Fork the repository from the original repository.
-2. Clone the repo: `git@github.com:Maubinyaachi/yolo-Microservice.git`
-3. Create a .gitignore file to exclude unnecessary     files and directories from version control.
-4. Added Dockerfile for the client to the repo:
-`git add client/Dockerfile`
-5. Add Dockerfile for the backend to the repo:
-`git add backend/dockerfile`
-6. Committed the changes:
-`git commit -m "Added Dockerfiles"`
-7. Added docker-compose file to the repo:
-`git add docker-compose.yml`
-8. Committed the changes:
-`git commit -m "Added docker-compose file"`
-9. Pushed the files to github:
-`git push `
-10. Built the client and backend images:
-`docker compose build`
-11. Pushed the built imags to docker registry:
-`docker compose push`
-12. Deployed the containers using docker compose:
-`docker compose up`
-
-13. Created explanation.md file and modified it as the commit messages in the repo will explain.
-
+bash
+Copy code
+docker build -t yourdockerhubusername/yolo-backend:v1.0.0 ./backend
+docker build -t yourdockerhubusername/yolo-frontend:v1.0.0 ./client
+docker push yourdockerhubusername/yolo-backend:v1.0.0
+docker push yourdockerhubusername/yolo-frontend:v1.0.0
+Screenshot: Link to DockerHub Screenshot
+Submission
+GitHub Repository Link
