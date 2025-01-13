@@ -93,9 +93,9 @@ This repository contains the implementation of an automated deployment pipeline 
 - Clone the repository:
 
 ```bash
-git clone https://github.com/username/repository.git
+git clone https://github.com/Vinge1718/yolo.git
 ```
-
+----------------------------------------------------------
 ### Stage 1: Ansible Instrumentation
 
 1. **Provision the Vagrant VM**:
