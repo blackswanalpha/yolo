@@ -1,16 +1,37 @@
 ---
-- name: Pull image from repository
-  docker_image:
-    name: brianbwire/brian-yolo-backend:v1.0.0
-    source: pull
-
-- name: Create Node.js Backend Container
-  docker_container:
-    name: brian-yolo-backend
-    image: brianbwire/brian-yolo-backend:v1.0.0
-    networks:
-      - name: app-net
-    ports:
-      - "5000:5000"
-    command: "npm start"
+- name: Deploy Node.js Backend
+  hosts: all
   become: yes
+
+  tasks:
+    # Task 1: Pull Backend Image from Repository
+    - name: Pull image from Docker repository
+      docker_image:
+        name:  kamandembugua/yolo-backend:v1.0.0
+        source: pull
+
+    # Task 2: Create Docker Network
+    - name: Create Docker network if not exists
+      docker_network:
+        name: app-net
+        driver: bridge
+
+    # Task 3: Create Volume for Persistent Data
+    - name: Create volume for MongoDB data
+      docker_volume:
+        name: app-mongo-data
+        state: present
+
+    # Task 4: Run Node.js Backend Container
+    - name: Run Node.js backend container
+      docker_container:
+        name: brian-yolo-backend
+        image:  kamandembugua/yolo-backend:v1.0.0
+        networks:
+          - name: app-net
+        ports:
+          - "5000:5000"
+        volumes:
+          - app-mongo-data:/app
+        command: "npm start"
+        state: started

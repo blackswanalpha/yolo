@@ -181,6 +181,29 @@ Below is a summary of the 10 descriptive commits made during the development of 
 - **Add Product Functionality**: Ensure products added via the form persist across sessions.
 - **Browser Verification**: Verify that the e-commerce platform is accessible and functional.
 
+
+### **Best Practices Used**
+- Variables defined in `vars.yml` for better reusability.
+- Separation of concerns through roles in Ansible.
+
+---
+
+## **Terraform Integration**
+
+### **Terraform Configuration**
+- **Provider**:
+  - `virtualbox` provider to create VMs locally.
+- **Resource Definition**:
+  - `virtualbox_vm` resource to define VM specifications (CPU, memory, etc.).
+
+### **Outputs**
+- Dynamic VM IP address used to generate the Ansible inventory.
+
+### **Integration with Ansible**
+- Used Terraform’s `local-exec` provisioner to trigger the Ansible playbook after infrastructure provisioning.
+
+---
+
 ## License
 
 This project is licensed under the MIT License. See the LICENSE file for details.
