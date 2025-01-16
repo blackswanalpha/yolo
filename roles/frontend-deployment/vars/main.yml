@@ -1,0 +1,7 @@
+---
+# Frontend deployment variables
+frontend_image: "kamandembugua/yolo-client:v1.0.0"
+frontend_network: "app-net"
+frontend_container_name: "yolo-client"
+frontend_host_port: 3000
+frontend_container_port: 3000
