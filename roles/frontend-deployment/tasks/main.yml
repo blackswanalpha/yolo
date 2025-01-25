@@ -7,7 +7,7 @@
 - name: Create Docker Network for Frontend
   docker_network:
     name: "{{ frontend_network }}"
-  ignore_errors: yes
+  ignore_errors: true
 
 - name: Run Frontend Container
   docker_container:
@@ -19,4 +19,4 @@
       - "{{ frontend_host_port }}:{{ frontend_container_port }}"
     state: started
     restart_policy: always
-  become: yes
+  become: true
