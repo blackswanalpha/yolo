@@ -161,3 +161,90 @@ Once the playbook runs successfully:
 
 ---
 
+
+
+
+#### **Step 2: Create Terraform Scripts**
+1. **Install Terraform**:
+   - Download Terraform from [terraform.io](https://www.terraform.io/downloads) and install it.
+
+2. **Set Up the Terraform File Structure**:
+   - Create a main.tf file:
+     
+hcl
+     provider "virtualbox" {}
+
+     resource "virtualbox_vm" "ansible_vm" {
+       name = "AnsibleVM"
+       image = "ubuntu/focal64"
+       cpus = 2
+       memory = 2048
+     }
+
+     output "vm_ip" {
+       value = "192.168.56.101"
+     }
+
+
+3. **Provision Resources**:
+   - Initialize and apply Terraform:
+     
+bash
+     terraform init
+     terraform apply -auto-approve
+
+
+---
+
+#### **Step 3: Integrate Ansible with Terraform**
+1. **Modify the Playbook to Use Terraform Outputs**:
+   - Update ansible/inventory dynamically using Terraform's output:
+     
+bash
+     terraform output -raw vm_ip > ansible/inventory
+
+
+2. **Trigger Ansible from Terraform**:
+   - In main.tf, use the local-exec provisioner:
+     
+hcl
+     provisioner "local-exec" {
+       command = "ansible-playbook -i ../ansible/inventory ../ansible/main.yml"
+     }
+
+
+3. **Reapply Terraform**:
+   
+bash
+   terraform apply -auto-approve
+
+
+---
+
+#### **Step 4: Test and Verify**
+1. **Check the Application**:
+   - Visit http://<Terraform-provisioned-IP> in your browser.
+   - Test the "Add Product" feature for data persistence.
+
+---
+
+### **Final Steps: Document and Submit**
+1. **Write README.md**:
+   - Include setup instructions for both stages.
+
+2. **Write explanation.md**:
+   - Describe:
+     - The roles and modules used in Ansible.
+     - Terraform configurations and their purpose.
+     - The integration process.
+
+3. **Push to GitHub**:
+   
+bash
+   git add .
+   git commit -m "Complete Stage 1 and Stage 2 setup"
+   git push origin Stage_two
+
+
+4. **Submit the Repository Link**:
+   - Ensure all files (Vagrantfile, main.yml, Terraform scripts, etc.) are included.
