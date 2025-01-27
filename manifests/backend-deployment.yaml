@@ -15,7 +15,7 @@ spec:
         app: backend
     spec:
       containers:
-        - name: yoloBackend
+        - name: yolobackend
           image: kamandembugua/yolo-backend:v1.0.0
           command: ["npm", "start"] 
           ports:
