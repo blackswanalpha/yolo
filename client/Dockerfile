@@ -1,5 +1,6 @@
 # Use an official Node runtime as a parent image
-FROM node:14-slim AS build
+# Use an official Node.js runtime as a parent image
+FROM node:lts
 
 # Set the working directory in the container
 WORKDIR /usr/src/app

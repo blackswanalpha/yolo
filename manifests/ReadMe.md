@@ -5,10 +5,10 @@
 
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://opensource.org/licenses/MIT)
 
-A Kubernetes implementation of an e-commerce application with persistent MySQL storage, using StatefulSets and NodePort exposure. Designed for Minikube local development.
+A Kubernetes implementation of an e-commerce application with persistent MongoDB storage, using StatefulSets and NodePort exposure. Designed for Minikube local development.
 
 ## Features
-- MySQL database with Persistent Volume
+- MongoDB database with Persistent Volume
 - StatefulSet for database stability
 - Backend API deployment
 - Frontend web interface
@@ -81,11 +81,11 @@ http://192.168.49.2:30007
    - Created basic documentation outline
    - Added prerequisites section
 
-3. `feat: Add MySQL StatefulSet with PVC template`
+3. `feat: Add MongoDB StatefulSet with PVC template`
    - Implemented StatefulSet for database
    - Configured persistent volume claim
 
-4. `feat: Create headless MySQL service`
+4. `feat: Create headless MongoDB service`
    - Added ClusterIP: None configuration
    - Defined port 3306 exposure
 
