@@ -20,22 +20,7 @@ A Kubernetes implementation of an e-commerce application with persistent MongoDB
 - Docker 20.10+
 - Helm (optional)
 
-## File Structure
-```
-├── manifests/
-│   ├── 00-namespace.yaml
-│   ├── 01-mysql-statefulset.yaml
-│   ├── 02-mysql-service.yaml
-│   ├── 03-backend-deployment.yaml
-│   ├── 04-backend-service.yaml
-│   ├── 05-frontend-deployment.yaml
-│   └── 06-frontend-service.yaml
-├── Dockerfiles/
-│   ├── backend.Dockerfile
-│   └── frontend.Dockerfile
-├── README.md
-└── explanation.md
-```
+
 
 ## Deployment
 
